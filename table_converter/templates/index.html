@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI for download tables</title>
+    <style>
+        /* Add some stylish CSS for the conversation */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            background-color: #8a63ff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .conversation {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+
+        .user-message {
+            color: #2196F3;
+        }
+
+        .assistant-message {
+            color: #8a63ff;
+        }
+
+        /* Style the forms and buttons */
+        form {
+            margin: 10px 0;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="color"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button[type="submit"] {
+            background-color: #8a63ff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #8a63ff;
+        }
+
+        /* Style the table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #8a63ff; /* Default header color */
+            color: white;
+        }
+
+        tr {
+            background-color: #ffffff; /* Default body row color */
+            color: rgb(0, 0, 0);
+        }
+
+        /* Style the download button */
+        #download-button {
+            background-color: #8a63ff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #download-button:hover {
+            background-color: #8a63ff;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI for download tables</h1>
+    <div class="container">
+        <!-- Table Task Form -->
+        <form method="post" action="/">
+            <label for="message_table">Table Task: </label>
+            <input type="text" id="message_table" name="message" required>
+            <label for="header_color">Header Color: </label>
+            <input type="color" id="header_color" name="header_color" placeholder="Header color (e.g., #ff0000)">
+            <label for="row_color">Row Color: </label>
+            <input type="color" id="row_color" name="row_color" placeholder="Row color (e.g., #00ff00)">
+            <button type="submit">Submit</button>
+        </form>
+
+        {% if task_description %}
+        <p>{{ task_description }}</p>
+        {% endif %}
+        
+        {% if conversation %}
+            {% for message in conversation %}
+                <div class="conversation">
+                    {% if message.role == "user" %}
+                        <h2 class="user-message">You:</h2>
+                    {% else %}
+                        <h2 class="assistant-message">AI:</h2>
+                    {% endif %}
+                    {% if message.content | safe %}
+                        <!-- Check if the content is safe HTML -->
+                        <div>{{ message.content | safe }}</div>
+                    {% else %}
+                        <p>{{ message.content }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <!-- Download button -->
+        <button id="download-button">Download Table as Image</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+    <script>
+        // Function to download the table as an image
+        document.getElementById('download-button').addEventListener('click', function () {
+            const container = document.querySelector('.container');
+            const table = container.querySelector('table');
+            
+            // Get header color and row color inputs
+            const headerColor = document.getElementById('header_color').value;
+            const rowColor = document.getElementById('row_color').value;
+            
+            // Apply header color and row color to the table
+            const thElements = table.querySelectorAll('th');
+            thElements.forEach((th) => {
+                th.style.backgroundColor = headerColor; // Apply header color to each header cell
+            });
+            const trElements = table.querySelectorAll('tr');
+            trElements.forEach((tr, index) => {
+                if (index > 0) { // Skip the first row (header row)
+                    tr.style.backgroundColor = rowColor; // Apply row color to each row
+                }
+            });
+
+            // Use html2canvas to capture the table as an image
+            html2canvas(table).then(function (canvas) {
+                // Create a data URL for the canvas and trigger a download
+                const dataURL = canvas.toDataURL('image/jpeg');
+                const link = document.createElement('a');
+                link.href = dataURL;
+                link.download = 'table_image.jpg';
+                link.click();
+                
+                // Reset the table colors to their defaults
+                thElements.forEach((th) => {
+                    th.style.backgroundColor = headerColor;
+                });
+                trElements.forEach((tr) => {
+                    tr.style.backgroundColor = rowColor;
+                });
+            });
+        });
+    </script>
+</body>
+</html>
